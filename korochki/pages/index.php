@@ -1,11 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Корочки</h1>
-</body>
-</html>
+<?php
+// pages/index.php
+
+// 1. Устанавливаем заголовок для этой конкретной страницы
+$pageTitle = 'Главная страница - Корочки.есть';
+
+// 2. Формируем основной контент страницы
+$content = '<p class="main-description">Портал «Корочки.есть» представляет собой информационную систему для записи на онлайн курсы дополнительного профессионального образования.</p>';
+
+// 3. Подключаем файл макета (layout)
+// Путь указан относительно корня сервера, как в вашей структуре /opt/lampp/htdocs/DE/korochki/
+require_once __DIR__ . '/layout.php';
+?>
