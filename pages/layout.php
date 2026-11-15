@@ -1,119 +1,70 @@
 <?php
 // pages/layout.php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../helpers/db.php';
 
-// Базовый URL: динамически определяется на основе пути скрипта (например, /stipendia)
-$baseUrl = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\');
+$page_title = $page_title ?? 'Портал «Стипендия»';
+$current_user = $_SESSION['user'] ?? null;
 
-// Заголовок страницы по умолчанию
-$pageTitle = $pageTitle ?? 'Стипендиальный портал';
-
-// ---------- Хлебные крошки ----------
-$breadcrumbMap = [
-    'index.php'       => 'Главная',
-    'auth.php'        => 'Авторизация',
-    'register.php'    => 'Регистрация',
-    'zayavki.php'     => 'Мои заявки',
-    'new_zayavka.php' => 'Новая заявка на стипендию',
-    'profile.php'     => 'Личный кабинет',
-    'admin.php'       => 'Админ-панель',
-];
-
-$currentFile = basename($_SERVER['SCRIPT_NAME']);
-$breadcrumbs = [
-    ['Главная', $baseUrl . '/pages/index.php'],
-];
-
-if ($currentFile !== 'index.php' && isset($breadcrumbMap[$currentFile])) {
-    $breadcrumbs[] = [$breadcrumbMap[$currentFile], null];
-}
+// Переменная для контента страницы (будет передана из index.php, auth.php и т.д.)
+$page_content = $page_content ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($pageTitle); ?></title>
-    <link rel="stylesheet" href="<?php echo $baseUrl; ?>/styles/style.css?v=<?php echo @filemtime(__DIR__ . '/../styles/style.css'); ?>">
+    <title><?= htmlspecialchars($page_title) ?></title>
+    <link rel="stylesheet" href="../styles/style.css"> 
 </head>
 <body>
-    <div class="container">
-        <header class="main-header">
-            <div class="logo">
-                <a href="<?php echo $baseUrl; ?>/pages/index.php">
-                    <!-- Замените logo.png на актуальный файл логотипа вашего проекта -->
-                    <img src="<?php echo $baseUrl; ?>/media/logo.png" alt="Логотип Стипендиальный портал">
-                </a>
-                <span class="site-title">СТИПЕНДИЯ</span>
-            </div>
-            
-            <div class="header-right">
-                <!-- Поиск можно убрать, если он не нужен на портале заявок -->
-                <div class="search-box">
-                    <input type="search" placeholder="Поиск по сайту" aria-label="Поиск по сайту">
-                </div>
-                
-                <nav class="main-nav">
-                    <ul>
-                        <?php if (!empty($_SESSION['user_id'])): ?>
-                            <li><a href="<?php echo $baseUrl; ?>/pages/new_zayavka.php">Подать заявку</a></li>
-                            <li><a href="<?php echo $baseUrl; ?>/pages/zayavki.php">Мои заявки</a></li>
-                            
-                            <?php if ((int)($_SESSION['user_role_id'] ?? 0) === 2): ?>
-                                <li><a href="<?php echo $baseUrl; ?>/pages/admin.php">Админ-панель</a></li>
-                            <?php endif; ?>
-                            
-                            <li>
-                                <a href="<?php echo $baseUrl; ?>/pages/logout.php">
-                                    Выйти (<?php echo htmlspecialchars($_SESSION['user_login'] ?? 'Пользователь'); ?>)
-                                </a>
-                            </li>
-                        <?php else: ?>
-                            <li><a href="<?php echo $baseUrl; ?>/pages/register.php">Регистрация</a></li>
-                            <li><a href="<?php echo $baseUrl; ?>/pages/auth.php">Войти</a></li>
-                        <?php endif; ?>
-                    </ul>
-                </nav>
-            </div>
-        </header>
 
-        <!-- Хлебные крошки -->
-        <nav class="breadcrumbs" aria-label="Навигация по сайту">
-            <ol>
-                <?php foreach ($breadcrumbs as $index => $crumb): ?>
-                    <?php $isLast = ($index === count($breadcrumbs) - 1); ?>
-                    <li class="<?php echo $isLast ? 'breadcrumb-current' : ''; ?>">
-                        <?php if ($crumb[1] !== null && !$isLast): ?>
-                            <a href="<?php echo htmlspecialchars($crumb[1]); ?>">
-                                <?php echo htmlspecialchars($crumb[0]); ?>
-                            </a>
-                        <?php else: ?>
-                            <span><?php echo htmlspecialchars($crumb[0]); ?></span>
-                        <?php endif; ?>
-                    </li>
-                <?php endforeach; ?>
-            </ol>
+<!-- ===== ШАПКА ===== -->
+<header class="site-header">
+    <div class="header-top">
+        <div class="logo">
+            <img src="../media/1282150.png" alt="Логотип" class="logo-img">
+        </div>
+
+        <div class="header-title">
+            <h1>Портал «Стипендия»</h1>
+        </div>
+
+        <nav class="header-nav">
+            <?php if ($current_user): ?>
+                <span class="user-greeting">Привет, <?= htmlspecialchars($current_user['full_name']) ?></span>
+                <a href="zayavki.php" class="nav-link">Мои заявки</a>
+                <?php if (($current_user['role'] ?? 0) == 1): ?>
+                    <a href="admin.php" class="nav-link">Админка</a>
+                <?php endif; ?>
+                <a href="logout.php" class="nav-link">выйти</a>
+            <?php else: ?>
+                <a href="register.php" class="nav-link">регистрация</a>
+                <a href="auth.php" class="nav-link">войти</a>
+            <?php endif; ?>
+            <span class="topic-label">Topic 4</span>
         </nav>
-
-        <hr class="header-divider">
-
-        <main>
-            <?php
-            if (isset($content)) {
-                echo $content;
-            } else {
-                echo '<p>Содержимое страницы не передано.</p>';
-            }
-            ?>
-        </main>
-
-        <footer class="main-footer">
-            <p>&copy; <?php echo date('Y'); ?> Стипендиальный портал. Все права защищены.</p>
-        </footer>
     </div>
-    
-    <script src="<?php echo $baseUrl; ?>/scripts/script.js"></script>
+
+    <div class="header-search">
+        <form action="#" method="GET" class="search-form">
+            <input type="text" name="q" placeholder="Search" class="search-input">
+            <button type="submit" class="search-btn">🔍</button>
+        </form>
+    </div>
+</header>
+
+<!-- ===== ОСНОВНОЙ КОНТЕНТ ===== -->
+<main class="site-main">
+    <?= $page_content ?>
+</main>
+
+<!-- ===== ПОДВАЛ ===== -->
+<footer class="site-footer">
+    <div class="footer-content">
+        <p>&copy; <?= date('Y') ?> Портал «Стипендия». Все права защищены.</p>
+    </div>
+</footer>
+
+<script src="../scripts/main.js"></script>
 </body>
 </html>
